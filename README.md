@@ -4,15 +4,17 @@ Co-design cloud assistants with your web app and IoT devices.
 
 See https://www.cafjs.com
 
-## Library for Bluetooth LEGO Services
+## Caf.js library to access Bluetooth LEGO devices
 
-A library to access Bluetooth LEGO services from an IoT device, or a browser using the Web Bluetooth API (Chrome).
+Interact with Bluetooth LEGO hubs from an IoT device, or a browser using the Web Bluetooth API (Chrome).
+
+This plugin is a thin wrapper around the amazing `nathankellenicki/node-poweredup` package.
 
 ## Dependencies Warning
 
-To eliminate expensive dependencies for apps in the workspace that do not need `caf_iot_lego`, the package `node-poweredup@^8.0.5` is declared as optional dependencies even though it is always needed.
+To eliminate expensive dependencies for apps in the workspace that do not need `caf_iot_lego`, the package `node-poweredup@^8.0.5` is declared as optional dependency even though it is always needed.
 
-Applications that depend on `caf_iot_lego` should also include this dependency in package.json as normal dependency.
+Applications that depend on `caf_iot_lego` should also include this dependency in package.json as a standard dependency.
 
 
 ## API
