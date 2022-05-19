@@ -1,24 +1,22 @@
-var hello = require('./hello/main.js');
-var helloIoT = require('./hello/iot/main.js');
-var caf_iot = require('caf_iot');
-var caf_components = caf_iot.caf_components;
-var cli = caf_iot.caf_cli;
-var myUtils = caf_components.myUtils;
-var async = caf_components.async;
-var app = hello;
-var appIoT = helloIoT;
-var crypto = require('crypto');
-
+const hello = require('./hello/main.js');
+const helloIoT = require('./hello/iot/main.js');
+const caf_iot = require('caf_iot');
+const caf_components = caf_iot.caf_components;
+const cli = caf_iot.caf_cli;
+const myUtils = caf_components.myUtils;
+const async = caf_components.async;
+const app = hello;
+const appIoT = helloIoT;
+const crypto = require('crypto');
+const setTimeoutPromise = require('util').promisify(setTimeout);
 
 /*
                             WARNING!!!
 
     This is not a proper test unit but just a helper program
-    to manually test BLE functionality.
+    to manually test Lego BLE functionality.
 
-    It requires a local BLE device properly configured to export a
-   'bcde' service with  characteristics 'abcd' and 'aaaa'.
-    See test/puckjs/service.js if you are a lucky owner of a fantastic Puck.js.
+    It requires a Spike essential lego hub with a 3x3 LED color matrix attached.
 
     Most of the checks are based on looking at console logs or LEDs...
 */
@@ -60,140 +58,98 @@ module.exports = {
         }
     },
 
-    hello: function(test) {
-        test.expect(3);
-        var s;
-        async.series([
-            function(cb) {
-                s = new cli.Session('http://root-hellogatt.vcap.me:3000',
+    async hello(test) {
+        test.expect(1);
+        try {
+            let s = new cli.Session('http://root-hellolego.vcap.me:3000',
                                     CA_NAME, {from: CA_NAME,
                                               log: function(x) {
                                                   console.log(x);
                                               }});
-                s.onopen = function() {
-                    var cb1 = function(err, data) {
-                        test.ifError(err);
-                        console.log('GOT: '+ JSON.stringify(data));
-                        cb(err, data);
-                    };
-                    async.series([
-                        function(cb2) {
-                            // input, pullup
-                            s.getState(cb2);
-                        }
-                    ], cb1);
+            let p = await new Promise((resolve, reject) => {
+                s.onopen = async function() {
+                    try {
+                        resolve(await s.getState().getPromise());
+                     } catch (err) {
+                        test.ok(false, 'Got exception ' + err);
+                        reject(err);
+                    }
                 };
                 s.onerror = function(err) {
                     test.ifError(err);
+
                     console.log(err);
+                    reject(err);
                 };
-            },
-            function(cb) {
-                var self = this;
+            });
+
+            var self = this;
+            p = await new Promise((resolve, reject) => {
                 appIoT.load(null, {name: 'topIoT'}, null, null,
-                 function(err, $) {
-                     if (err) {
-                         console.log('setUP Error' + err);
-                         console.log('setUP Error $' + $);
-                         // ignore errors here, check in method
-                         cb(null);
-                     } else {
-                         self.$IoT = $;
-                         cb(err, $);
-                     }
-                 });
-            },
-            function(cb) {
-                setTimeout(function() {cb(null);}, 2000);
-            },
-            function(cb) {
-                var self = this;
-                s.getState(function(err, state) {
-                    console.log(state);
-                    cb(err, state);
-                });
-            },
-            function(cb) {
-                this.$IoT.topIoT.$.iot.$.handler.findServices('bcde', cb);
-            },
-            function(cb) {
-                setTimeout(function() {cb(null);}, 2000);
-            },
-            function(cb) {
-                this.$IoT.topIoT.$.iot.$.handler.findCharacteristics('abcd', cb);
-            },
-            function(cb) {
-                setTimeout(function() {cb(null);}, 2000);
-            },
-            function(cb) {
-                this.$IoT.topIoT.$.iot.$.handler.read(cb);
-            },
-            function(cb) {
-                setTimeout(function() {cb(null);}, 2000);
-            },
-            function(cb) {
-                this.$IoT.topIoT.$.iot.$.handler.write('on', cb);
-            },
-            function(cb) {
-                setTimeout(function() {cb(null);}, 2000);
-            },
-            function(cb) {
-                this.$IoT.topIoT.$.iot.$.handler.write('off', cb);
-            },
-            function(cb) {
-                setTimeout(function() {cb(null);}, 2000);
-            },
-            function(cb) {
-                this.$IoT.topIoT.$.iot.$.handler.read(cb);
-            },
-            function(cb) {
-                setTimeout(function() {cb(null);}, 2000);
-            },
-            function(cb) {
-                this.$IoT.topIoT.$.iot.$.handler.disconnect(cb);
-            },
-            function(cb) {
-                this.$IoT.topIoT.$.iot.$.handler.findCharacteristics('aaaa',
-                                                                     cb);
-            },
-            function(cb) {
-                setTimeout(function() {cb(null);}, 2000);
-            },
-            function(cb) {
-                this.$IoT.topIoT.$.iot.$.handler.subscribe(cb);
-            },
-            function(cb) {
-                setTimeout(function() {cb(null);}, 6000);
-            },
-            function(cb) {
-                this.$IoT.topIoT.$.iot.$.handler.unsubscribe(cb);
-            },
-            function(cb) {
-                setTimeout(function() {cb(null);}, 4000);
-            },
-            function(cb) {
-                var all = this.$IoT.topIoT.$.iot.$.handler.debugGetAll();
-                console.log(JSON.stringify(all));
-                cb(null);
-            },
-            function(cb) {
-                if (!this.$IoT) {
-                    cb(null);
-                } else {
-                    this.$IoT.topIoT.__ca_graceful_shutdown__(null, cb);
-                }
-            },
-            function(cb) {
+                            function(err, $) {
+                                if (err) {
+                                    console.log('setUP Error' + err);
+                                    console.log('setUP Error $' + $);
+                                    // ignore errors here, check in method
+                                    reject(err);
+                                } else {
+                                    self.$IoT = $;
+                                    resolve($);
+                                }
+                            });
+            });
+
+            await this.$IoT.topIoT.$.iot.$.handler.connect(
+                'TECHNIC_3X3_COLOR_LIGHT_MATRIX'
+            );
+
+            console.log('GOT connected');
+            await setTimeoutPromise(2000);
+
+            await this.$IoT.topIoT.$.iot.$.handler.setMatrix(5);
+
+            console.log('after setMatrix');
+            await setTimeoutPromise(2000);
+
+            await this.$IoT.topIoT.$.iot.$.handler.setMatrix(3);
+            await setTimeoutPromise(2000);
+
+            await this.$IoT.topIoT.$.iot.$.handler.setTilt();
+            await setTimeoutPromise(10000);
+
+            console.log('removing tilt');
+            await this.$IoT.topIoT.$.iot.$.handler.removeTilt();
+            await setTimeoutPromise(5000);
+
+            await this.$IoT.topIoT.$.iot.$.handler.disconnect();
+
+            var all = await this.$IoT.topIoT.$.iot.$.handler.debugGetAll();
+            console.log(JSON.stringify(all));
+
+            p = await new Promise((resolve, reject) => {
+                this.$IoT.topIoT.__ca_graceful_shutdown__(
+                    null, function(err, data) {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    }
+                );
+            });
+
+            p = await new Promise((resolve, reject) => {
                 s.onclose = function(err) {
                     test.ifError(err);
-                    cb(null);
+                    resolve(null);
                 };
                 s.close();
-            }
-        ], function(err, res) {
+            });
+
+            test.done();
+        } catch (err) {
             test.ifError(err);
             test.done();
-        });
-
+        }
     }
 };

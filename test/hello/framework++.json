@@ -10,7 +10,7 @@
         {
             "name": "log",
             "env" : {
-                "logLevel" : "DEBUG"
+                "logLevel" : "WARN"
             }
         },
         {

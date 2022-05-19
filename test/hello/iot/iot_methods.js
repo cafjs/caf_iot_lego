@@ -2,120 +2,53 @@
 "use strict";
 
 exports.methods = {
-    __iot_setup__ : function(cb) {
+    async __iot_setup__() {
         this.state.values = {};
-        this.state.notif = {};
-        cb(null);
+        return [];
     },
 
-    __iot_loop__ : function(cb) {
+    async __iot_loop__() {
         var now = (new Date()).getTime();
         this.$.log && this.$.log.debug(now + ' loop:');
-        this.toCloud.set('in', {});
-        var id = (this.scratch.lastDevice && this.scratch.lastDevice.id) || null;
-        this.toCloud.set('lastDeviceId', {id: id});
-        cb(null);
+        return [];
     },
 
 
-    findServices: function(serviceId, cb) {
-        this.state.lastServiceId = serviceId;
-        this.$.lego.findServices(serviceId, '__iot_foundService__', null);
-        cb(null);
+    async __iot_tilt__(deviceType, topic, argsObj) {
+        this.$.log && this.$.log.debug(`tilt: ${deviceType} ${topic}` +
+                                       ` ${JSON.stringify(argsObj)}`);
+        return [];
     },
 
-    findCharacteristics: function(chId, cb) {
-        this.state.lastChId = chId;
-        var self = this;
-        this.$.lego.findCharacteristics(this.state.lastServiceId,
-                                        this.scratch.lastDevice,
-                                        function(err, result) {
-                                            if (err) {
-                                                cb(err);
-                                            } else {
-                                                self.__iot_foundCharac__(result,
-                                                                         cb);
-                                            }
-                                        });
+    async connect(deviceTypes) {
+        await this.$.lego.connect(deviceTypes);
+        return [];
     },
 
-    read: function(cb) {
-        if (this.scratch.lastCh) {
-            console.log('Reading 1');
-            this.$.lego.read(this.scratch.lastCh, '__iot_read__');
-        }
-        cb(null);
-    },
-    write: function(value, cb) {
-        var buf = new Buffer(value);
-        if (this.scratch.lastCh) {
-            console.log('Writing 1');
-            this.$.lego.write(this.scratch.lastCh, buf);
-        }
-        cb(null);
+    async disconnect() {
+        await this.$.lego.disconnect();
+        return [];
     },
 
-    subscribe: function(cb) {
-        if (this.scratch.lastCh) {
-            this.$.lego.subscribe(this.scratch.lastCh, '__iot_sub__');
-        }
-        cb(null);
+    async setMatrix(color) {
+        await this.$.lego.callMethod(
+            'TECHNIC_3X3_COLOR_LIGHT_MATRIX', 'setMatrix', [color]
+        );
+        return [];
     },
 
-    unsubscribe: function(cb) {
-        if (this.scratch.lastCh) {
-            this.$.lego.unsubscribe(this.scratch.lastCh);
-        }
-        cb(null);
+    async setTilt() {
+        await this.$.lego.registerHandler(null, 'tilt', '__iot_tilt__');
+        return [];
     },
 
-
-
-    disconnect: function(cb) {
-        if (this.scratch.lastDevice) {
-            this.$.lego.disconnect(this.scratch.lastDevice);
-        }
-        cb(null);
-    },
-
-    __iot_read__: function(charact, value, cb) {
-        console.log('READ Value for ' + charact.uuid + ' is ' + value);
-        this.state.values[charact.uuid] = value;
-        cb(null);
-    },
-    __iot_foundCharac__: function(result, cb) {
-        var self = this;
-        var chArray = result.characteristics;
-        chArray = chArray || [];
-        console.log('*** FOUND CHARACTERISTIC ' + chArray);
-        chArray.some(function(x) {
-            if (x.uuid === self.state.lastChId) {
-                self.scratch.lastCh = x;
-                return true;
-            } else {
-                console.log(x.uuid);
-                return false;
-            }
-        });
-
-        cb(null);
-    },
-    __iot_foundService__: function(serviceId, device, cb) {
-        console.log('service:' + serviceId + ' device:' + device);
-        this.scratch.lastDevice = device;
-        cb(null);
-    },
-
-    __iot_sub__: function(charact, value, cb) {
-        value = parseInt(value.toString('hex'), 16);
-        console.log('Notify: got ' + value);
-        this.state.notif[charact.uuid] = value;
-        cb(null);
-
+    async removeTilt() {
+        await this.$.lego.registerHandler(null, 'tilt', null);
+        return [];
     },
 
     //backdoor for testing
-    debugGetAll : function() {
+    async debugGetAll() {
         return { state: this.state, toCloud: this.toCloud.dump(),
                  fromCloud: this.fromCloud.dump() };
     }
