@@ -18,6 +18,9 @@
         "nodeunit": ">=0.9"
     },
     "main": "index",
+    "browser" : {
+        "node-poweredup": "node-poweredup/dist/node/poweredup-browser"
+    },
     "homepage": "http://www.cafjs.com",
     "repository": {
         "type": "git",

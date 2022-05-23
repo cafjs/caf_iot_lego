@@ -31,7 +31,9 @@ Applications that depend on `caf_iot_lego` should also include this dependency i
             "description": "Access BLE LEGO services.",
             "env" : {
                 "maxRetries" : "$._.env.maxRetries",
-                "retryDelay" : "$._.env.retryDelay"            },
+                "retryDelay" : "$._.env.retryDelay",
+                "manuallyAttached": "process.env.MANUALLY_ATTACHED||[]"
+            },
             "components" : [
                 {
                     "module": "caf_iot_lego#proxy_iot",

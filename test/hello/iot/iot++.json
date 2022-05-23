@@ -24,7 +24,8 @@
                     "description": "Access to LEGO devices.",
                     "env" : {
                         "maxRetries" : "$._.env.maxRetries",
-                        "retryDelay" : "$._.env.retryDelay"
+                        "retryDelay" : "$._.env.retryDelay",
+                        "manuallyAttached": "process.env.MANUALLY_ATTACHED||[]"
                     },
                     "components" : [
                         {
