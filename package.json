@@ -8,7 +8,7 @@
         "caf_iot": "^0.4.0"
     },
     "optionalDependencies": {
-        "node-poweredup": "^8.0.5"
+        "caf_node-poweredup": "^8.0.5"
     },
     "devDependencies": {
         "caf_core": "^0.4.0",
@@ -19,7 +19,7 @@
     },
     "main": "index",
     "browser" : {
-        "node-poweredup": "node-poweredup/dist/node/poweredup-browser"
+        "caf_node-poweredup": "caf_node-poweredup/dist/node/poweredup-browser"
     },
     "homepage": "http://www.cafjs.com",
     "repository": {
