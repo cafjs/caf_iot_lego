@@ -61,7 +61,7 @@ module.exports = {
     async hello(test) {
         test.expect(1);
         try {
-            let s = new cli.Session('http://root-hellolego.vcap.me:3000',
+            let s = new cli.Session('http://root-hellolego.localtest.me:3000',
                                     CA_NAME, {from: CA_NAME,
                                               log: function(x) {
                                                   console.log(x);
